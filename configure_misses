@@ -1,0 +1,7 @@
+Configure miss: whether to use external libraries distribution
+Configure miss: Advapi32 library
+Configure miss: gnu make >= 3.81 (gmake)
+Configure miss: whether to use -Werror
+Configure miss: xml to xhtml docbook stylesheets
+Configure miss: xml to fo docbook stylesheets
+Configure miss: docbook 4.x xml DTD
