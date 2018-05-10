@@ -4,7 +4,7 @@
 #
 Name     : qpdf
 Version  : 7.0.0
-Release  : 2
+Release  : 3
 URL      : https://github.com/qpdf/qpdf/archive/release-qpdf-7.0.0.tar.gz
 Source0  : https://github.com/qpdf/qpdf/archive/release-qpdf-7.0.0.tar.gz
 Summary  : PDF transformation library
