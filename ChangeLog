@@ -1,3 +1,520 @@
+2018-08-18  Jay Berkenbilt  <ejb@ql.org>
+
+	* 8.2.1: release
+
+	* Add new option --keep-files-open=[yn] to control whether qpdf
+	keeps files open when merging. Prior to version 8.1.0, qpdf always
+	kept all files open, but this meant that the number of files that
+	could be merged was limited by the operating system's open file
+	limit. Version 8.1.0 opened files as they were referenced, but
+	this caused a major performance impact. Version 8.2.0 optimized
+	the performance but did so in a way that, for local file systems,
+	there was a small but unavoidable performance hit, but for
+	networked file systems, the performance impact could be very high.
+	Starting with version 8.2.1, the default behavior is that files
+	are kept open if no more than 200 files are specified, but that
+	the behavior can be explicitly overridden with the
+	--keep-files-open flag. If you are merging more than 200 files but
+	less than the operating system's max open files limit, you may
+	want to use --keep-files-open=y. If you are using a local file
+	system where the overhead is low and you might sometimes merge
+	more than the OS limit's number of files, you may want to specify
+	--keep-files-open=n. Fixes #237.
+
+2018-08-16  Jay Berkenbilt  <ejb@ql.org>
+
+	* 8.2.0: release
+
+2018-08-14  Jay Berkenbilt  <ejb@ql.org>
+
+	* For the mingw builds, change the name of the DLL import library
+	from libqpdf.a to libqpdf.dll.a to avoid confusing it with a
+	static library. This potentially clears the way for supporting a
+	static library in the future, though presently, the qpdf Windows
+	build only builds the DLL and executables. Fixes #225.
+
+2018-08-13  Jay Berkenbilt  <ejb@ql.org>
+
+	* Add new class QPDFSystemError, derived from std::runtime_error,
+	which is now thrown by QUtil::throw_system_error. This enables the
+	triggering errno value to be retrieved. Fixes #221.
+
+2018-08-12  Jay Berkenbilt  <ejb@ql.org>
+
+	* qpdf command line: add --no-warn option to suppress issuing
+	warning messages. If there are any conditions that would have
+	caused warnings to be issued, the exit status is still 3.
+
+	* Rewrite the internals of Pl_Buffer to be much more efficient in
+	use of memory at a very slight performance cost. The old
+	implementation could cause memory usage to go out of control for
+	files with large images compressed using the TIFF predictor.
+	Fixes #228.
+
+2018-08-05  Jay Berkenbilt  <ejb@ql.org>
+
+	* Bug fix: end of line characters were not properly handled inside
+	strings in some cases. Fixes #226.
+
+	* Bug fix: infinite loop on progress reporting for very small
+	files. Fixes #230.
+
+2018-08-04  Jay Berkenbilt  <ejb@ql.org>
+
+	* Performance fix: optimize page merging operation to avoid
+	unnecessary open/close calls on files being merged. Fixes #217.
+
+	* Add ClosedFileInputSource::stayOpen method, enabling a
+	ClosedFileInputSource to stay open during manually indicated
+	periods of high activity, thus reducing the overhead of frequent
+	open/close operations.
+
+2018-06-23  Jay Berkenbilt  <ejb@ql.org>
+
+	* 8.1.0: release
+
+2018-06-22  Jay Berkenbilt  <ejb@ql.org>
+
+	* Bug fix: properly decrypt files with 40-bit keys that use
+	revision 3 of the security handler. Prior to this, qpdf was
+	reporting "invalid password" in this case. Fixes #212.
+
+	* With --verbose, print information about each input file when
+	merging files.
+
+	* Add progress reporting to QPDFWriter. Programmatically, you can
+	register a progress reporter with registerProgressReporter(). From
+	the command line, passing --progress will give progress indicators
+	in increments of no less than 1% as output files are written.
+	Fixes #200.
+
+	* Add new method QPDF::getObjectCount(). This gives an approximate
+	(upper bound) account of objects in the QPDF object.
+
+	* Don't leave files open when merging. This makes it possible
+	merge more files at once than the operating system's open file
+	limit. Fixes #154.
+
+	* Add ClosedFileInputSource class, and input source that keeps its
+	input file closed when not reading it. At the expense of some
+	performance, this allows you to operate on many files without
+	opening too many files at the operating system level.
+
+	* Add new option --preserve-unreferenced-resources, which
+	suppresses removal of unreferenced objects from page resource
+	dictionaries during page splitting operations.
+
+2018-06-21  Jay Berkenbilt  <ejb@ql.org>
+
+	* Add method QPDFPageObjectHelper::removeUnreferencedResources and
+	also QPDFPageDocumentHelper::removeUnreferencedResources that
+	calls the former on every page. This method removes any XObject or
+	Font references from the page's resource dictionary if they are
+	not referenced anywhere in any of the content streams. This
+	significantly reduces the size of split files whose pages
+	internally share resource dictionaries. Fixes #203.
+
+	* The --rotate option to qpdf no longer requires an explicit page
+	range. You can now rotate all pages of a document with
+	qpdf --rotate=angle in.pdf out.pdf. Fixes #211.
+
+	* Create examples/pdf-set-form-values.cc to illustrate use of
+	interactive form helpers.
+
+	* Added methods QPDFAcroFormDocumentHelper::setNeedAppearances and
+	added methods to QPDFFormFieldObjectHelper to set a field's value,
+	optionally updating the document to indicate that appearance
+	streams need to be regenerated.
+
+	* Added QPDFObject::newUnicodeString and QPDFObject::unparseBinary
+	to allow for more convenient creation of strings that are
+	explicitly encoded in UTF-16 BE. This is useful for creating
+	Unicode strings that appear outside of content streams, such as in
+	page labels, outlines, form field values, etc.
+
+2018-06-20  Jay Berkenbilt  <ejb@ql.org>
+
+	* Added new classes QPDFAcroFormDocumentHelper,
+	QPDFFormFieldObjectHelper, and QPDFAnnotationObjectHelper to
+	assist with working with interactive forms in PDF files. At
+	present, API methods for reading forms, form fields, and widget
+	annotations have been added. It is likely that some additional
+	methods for modifying forms will be added in the future. Note that
+	qpdf remains a library whose function is primarily focused around
+	document structure and metadata rather than content. As such, it
+	is not expected that qpdf will have higher level APIs for
+	generating form contents, but qpdf will hopefully gain the
+	capability to deal with the bookkeeping aspects of wiring up all
+	the objects, which could make it a useful library for other
+	software that works with PDF interactive forms. PDF forms are
+	complex, and the terminology around them is confusing. Please see
+	comments at the top of QPDFAcroFormDocumentHelper.hh for
+	additional discussion.
+
+	* Added new classes QPDFPageDocumentHelper and QPDFPageObjectHelper
+	for page-level API functions. These classes introduce a new API
+	pattern of document helpers and object helpers in qpdf. The helper
+	classes provide a higher level API for working with certain types
+	of structural features of PDF while still staying true to qpdf's
+	philosophy of not isolating the user from the underlying
+	structure. Please see the chapter in the documentation entitled
+	"Design and Library Notes" for additional discussion. The examples
+	have also been updated to use QPDFPageDocumentHelper and
+	QPDFPageObjectHelper when performing page-level operations.
+
+2018-06-19  Jay Berkenbilt  <ejb@ql.org>
+
+	* New QPDFObject::Rectangle class will convert to and from arrays
+	of four numerical values. Rectangles are used in various places
+	within the PDF file format and are called out as a specific data
+	type in the PDF specification.
+
+2018-05-12  Jay Berkenbilt  <ejb@ql.org>
+
+	* In newline before endstream mode, an extra newline was not
+	inserted prior to the endstream that ends object streams.
+	Fixes #205.
+
+2018-04-15  Jay Berkenbilt  <ejb@ql.org>
+
+	* Arbitrarily limit the depth of data structures represented by
+	direct object. This is CVE-2018-9918. Fixes #202.
+
+2018-03-06  Jay Berkenbilt  <ejb@ql.org>
+
+	* 8.0.2: release
+
+	* Properly handle pages with no contents. Fixes #194.
+
+2018-03-05  Jay Berkenbilt  <ejb@ql.org>
+
+	* Improve handling of loops while following cross reference
+	tables. Fixes #192.
+
+2018-03-04  Jay Berkenbilt  <ejb@ql.org>
+
+	* 8.0.1: release
+
+	* On the command line when specifying page ranges, support
+	preceding a page number by "r" to indicate that it should be
+	counted from the end. For example, the range r3-r1 would indicate
+	the last three pages of a document.
+
+2018-03-03  Jay Berkenbilt  <ejb@ql.org>
+
+	* Ignore zlib data check errors while uncompressing streams. This
+	is consistent with behaviors of other readers and enables handling
+	of some incorrectly written zlib streams. Fixes #191.
+
+2018-02-25  Jay Berkenbilt  <ejb@ql.org>
+
+	* 8.0.0: release
+
+2018-02-17  Jay Berkenbilt  <ejb@ql.org>
+
+	* Fix QPDFObjectHandle::getUTF8Val() to properly handle strings
+	that are encoded with PDF Doc Encoding. Fixes #179.
+
+	* Add qpdf_check_pdf to the "C" API. This method just attempts to
+	read the entire file and produce no output, making possible to
+	assess whether the file has any errors that qpdf can detect.
+
+	* Major enhancements to handling of type errors within the qpdf
+	library. This fix is intended to eliminate those annoying cases
+	where qpdf would exit with a message like "operation for
+	dictionary object attempted on object of wrong type" without
+	providing any context. Now qpdf keeps enough context to be able to
+	issue a proper warning and to handle such conditions in a sensible
+	way. This should greatly increase the number of bad files that
+	qpdf can recover, and it should make it much easier to figure out
+	what's broken when a file contains errors.
+
+	* Error message fix: replace "file position" with "offset" in
+	error messages that report lexical or parsing errors. Sometimes
+	it's an offset in an object stream or a content stream rather than
+	a file position, so this makes the error message less confusing in
+	those cases. It still requires some knowledge to find the exact
+	position of the error, since when it's not a file offset, it's
+	probably an offset into a stream after uncompressing it.
+
+	* Error message fix: correct some cases in which the object that
+	contained a lexical error was omitted from the error message.
+
+	* Error message fix: improve file name in the error message when
+	there is a parser error inside an object stream.
+
+2018-02-11  Jay Berkenbilt  <ejb@ql.org>
+
+	* Add QPDFObjectHandle::filterPageContents method to provide a
+	different interface for applying token filters to page contents
+	without modifying the ultimate output.
+
+2018-02-04  Jay Berkenbilt  <ejb@ql.org>
+
+        * Changes listed on today's date are numerous and reflect
+	significant enhancements to qpdf's lexical layer. While many
+	nuances are discussed and a handful of small bugs were fixed, it
+	should be emphasized that none of these issues have any impact on
+	any output or behavior of qpdf under "normal" operation. There are
+	some changes that have an effect on content stream normalization
+	as with qdf mode or on code that interacts with PDF files
+	lexically using QPDFTokenizer. There are no incompatible changes
+	for normal operation. There are a few changes that will affect the
+	exact error messages issued on certain bad files, and there is a
+	small non-compatible enhancement regarding the behavior of
+	manually constructed QPDFTokenizer::Token objects. Users of the
+	qpdf command line tool will see no changes other than the addition
+	of a new command-line flag and possibly some improved error
+	messages.
+
+	* Significant lexer (tokenizer) enhancements. These are changes to
+	the QPDFTokenizer class. These changes are of concern only to
+	people who are operating with PDF files at the lexical layer using
+	qpdf. They have little or no impact on most high-level interfaces
+	or the command-line tool.
+
+	New token types tt_space and tt_comment to recognize whitespace
+	and comments. this makes it possible to tokenize a PDF file or
+	stream and preserve everything about it.
+
+	For backward compatibility, space and comment tokens are not
+	returned by the tokenizer unless QPDFTokenizer.includeIgnorable()
+	is called.
+
+	Better handling of null bytes. These are now included in space
+	tokens rather than being their own "tt_word" tokens. This should
+	have no impact on any correct PDF file and has no impact on
+	output, but it may change offsets in some error messages when
+	trying to parse contents of bad files. Under default operation,
+	qpdf does not attempt to parse content streams, so this change is
+	mostly invisible.
+
+	Bug fix to handling of bad tokens at ends of streams. Now, when
+	allowEOF() has been called, these are treated as bad tokens
+	(tt_bad or an exception, depending on invocation), and a
+	separate tt_eof token is returned. Before the bad token
+	contents were returned as the value of a tt_eof token. tt_eof
+	tokens are always empty now.
+
+	Fix a bug that would, on rare occasions, report the offset in an
+	error message in the wrong space because of spaces or comments
+	adjacent to a bad token.
+
+	Clarify in comments exactly where the input source is positioned
+	surrounding calls to readToken and getToken.
+
+	* Add a new token type for inline images. This token type is only
+	returned by QPDFTokenizer immediately following a call to
+	expectInlineImage(). This change includes internal refactoring of
+	a handful of places that all separately handled inline images, The
+	logic of detecting inline images in content streams is now handled
+	in one place in the code. Also we are more flexible about what
+	characters may surround the EI operator that marks the end of an
+	inline image.
+
+	* New method QPDFObjectHandle::parsePageContents() to improve upon
+	QPDFObjectHandle::parseContentStream(). The parseContentStream
+	method used to operate on a single content stream, but was fixed
+	to properly handle pages with contents split across multiple
+	streams in an earlier release. The new method parsePageContents()
+	can be called on the page object rather than the value of the
+	page dictionary's /Contents key. This removes a few lines of
+	boiler-plate code from any code that uses parseContentStream, and
+	it also enables creation of more helpful error messages if
+	problems are encountered as the error messages can include
+	information about which page the streams come from.
+
+	* Update content stream parsing example
+	(examples/pdf-parse-content.cc) to use new
+	QPDFObjectHandle::parsePageContents() method in favor of the older
+	QPDFObjectHandle::parseContentStream() method.
+
+	* Bug fix: change where the trailing newline is added to a stream
+	in QDF mode when content normalization is enabled (the default for
+	QDF mode). Before, the content normalizer ensured that the output
+	ended with a trailing newline, but this had the undesired side
+	effect of including the newline in the stream data for purposes of
+	length computation. QPDFWriter already appends a newline without
+	counting in length for better readability. Ordinarily this makes
+	no difference, but in the rare case of a page's contents being
+	split in the middle of a token, the old behavior could cause the
+	extra newline to be interpreted as part of the token. This bug
+	could only be triggered in qdf mode, which is a mode intended for
+	manual inspection of PDF files' contents, so it is very unlikely
+	to have caused any actual problems for people using qpdf for
+	production use. Even if it did, it would be very unusual for a PDF
+	file to actually be adversely affected by this issue.
+
+	* Add support for coalescing a page's contents into a single
+	stream if they are represented as an array of streams. This can be
+	performed from the command line using the --coalesce-contents
+	option. Coalescing content streams can simplify things for
+	software that wants to operate on a page's content streams without
+	having to handle weird edge cases like content streams split in
+	the middle of tokens. Note that
+	QPDFObjectHandle::parsePageContents and
+	QPDFObjectHandle::parseContentStream already handled split content
+	streams. This is mainly to set the stage for new methods of
+	operating on page contents. The new method
+	QPDFObjectHandle::pipeContentStreams will pipe all of a page's
+	content streams though a single pipeline. The new method
+	QPDFObjectHandle.coalesceContentStreams, when called on a page
+	object, will do nothing if the page's contents are a single
+	stream, but if they are an array of streams, it will replace the
+	page's contents with a single stream whose contents are the
+	concatenation of the original streams.
+
+	* A few library routines throw exceptions if called on non-page
+	objects. These constraints have been relaxed somewhat to make qpdf
+	more tolerant of files whose page dictionaries are not properly
+	marked as such. Mostly exceptions about page operations being
+	called on non page objects will only be thrown in cases where the
+	operation had no chance of succeeding anyway. This change has no
+	impact on any default mode operations, but it could allow
+	applications that use page-level APIs in QPDFObjectHandle to be
+	more tolerant of certain types of damaged files.
+
+	* Add QPDFObjectHandle::TokenFilter class and methods to use it to
+	perform lexical filtering on content streams. You can call
+	QPDFObjectHandle::addTokenFilter on stream object, or you can call
+	the higher level QPDFObjectHandle::addContentTokenFilter on a page
+	object to cause the stream's contents to passed through a token
+	filter while being retrieved by QPDFWriter or any other consumer.
+	For details on using TokenFilter, please see comments in
+	QPDFObjectHandle.hh.
+
+	* Enhance the string, type QPDFTokenizer::Token constructor to
+	initialize a raw value in addition to a value. Tokens have a
+	value, which is a canonical representation, and a raw value. For
+	all tokens except strings and names, the raw value and the value
+	are the same. For strings, the value excludes the outer delimiters
+	and has non-printing characters normalized. For names, the value
+	resolves non-printing characters. In order to better facilitate
+	token filters that mostly preserve contents and to enable
+	developers to be mostly unconcerned about the nuances of token
+	values and raw values, creating string and name tokens now
+	properly handles this subtlety of values and raw values. When
+	constructing string tokens, take care to avoid passing in the
+	outer delimiters. This has always been the case, but it is now
+	clarified in comments in QPDFObjectHandle.hh::TokenFilter. This
+	has no impact on any existing code unless there's some code
+	somewhere that was relying on Token::getRawValue() returning an
+	empty string for a manually constructed token. The token class's
+	operator== method still only looks at type and value, not raw
+	value. For example, string tokens for <41> and (A) would still be
+	equal because both are representations of the string "A".
+
+	* Add QPDFObjectHandle::isDataModified method. This method just
+	returns true if addTokenFilter has been called on the stream. It
+	enables a caller to determine whether it is safe to optimize away
+	piping of stream data in cases where the input and output are
+	expected to be the same. QPDFWriter uses this internally to skip
+	the optimization of not re-compressing already compressed streams
+	if addTokenFilter has been called. Most developers will not have
+	to worry about this as it is used internally in the library in the
+	places that need it. If you are manually retrieving stream data
+	with QPDFObjectHandle::getStreamData or
+	QPDFObjectHandle::pipeStreamData, you don't need to worry about
+	this at all.
+
+	* Provide heavily annotated examples/pdf-filter-tokens.cc example
+	that illustrates use of some simple token filters.
+
+	* When normalizing content streams, as in qdf mode, issue warning
+	about bad tokens. Content streams are only normalized when this is
+	explicitly requested, so this has no impact on normal operation.
+	However, in qdf mode, if qpdf detects a bad token, it means that
+	either there's a bug in qpdf's lexer, that the file is damaged, or
+	that the page's contents are split in a weird way. In any of those
+	cases, qpdf could potentially damage the stream's contents by
+	replacing carriage returns with newlines or otherwise messing with
+	spaces. The mostly likely case of this would be an inline image's
+	compressed data being divided across two streams and having the
+	compressed data in the second stream contain a carriage return as
+	part of its binary data. If you are using qdf mode just to look at
+	PDF files in text editors, this usually doesn't matter. In cases
+	of contents split across multiple streams, coalescing streams
+	would eliminate the problem, so the warning mentions this. Prior
+	to this enhancement, the chances of qdf mode writing incorrect
+	data were already very low. This change should make it nearly
+	impossible for qdf mode to unknowingly write invalid data.
+
+2018-02-04  Jay Berkenbilt  <ejb@ql.org>
+
+	* Add QPDFWriter::setLinearizationPass1Filename method and
+	--linearize-pass1 command line option to allow specification of a
+	file into which QPDFWriter will write its intermediate
+	linearization pass 1 file. This is useful only for debugging qpdf.
+	qpdf creates linearized files by computing the output in two
+	passes. Ordinarily the first pass is discarded and not written
+	anywhere. This option allows it to be inspected.
+
+2018-02-04  Jay Berkenbilt  <ejb@ql.org>
+
+	* 7.1.1: release
+
+	* Bug fix: properly linearize files whose /ID has a length of
+	other than 16 bytes.
+
+	* Rename some test files to avoid files with three dots in their
+	names. Fixes #173.
+
+	* Fix various build and compilation issues on some platforms and
+	compilers. Fixes #176, #172, #177
+
+	* Fix a few typos and clarify a few comments in header files.
+
+2018-01-14  Jay Berkenbilt  <ejb@ql.org>
+
+	* 7.1.0: release
+
+	* Allow raw encryption key to be specified in library and command
+	line with the QPDF::setPasswordIsHexKey method and
+	--password-is-hex-key option. Allow encryption key to be displayed
+	with --show-encryption-key option. Thanks to Didier Stevens
+	<didier.stevens@gmail.com> for the idea and contribution of one
+	implementation of this idea. See his blog post at
+	https://blog.didierstevens.com/2017/12/28/cracking-encrypted-pdfs-part-3/
+	for a discussion of using this for cracking encrypted PDFs. I hope
+	that a future release of qpdf will include some additional
+	recovery options that may also make use of this capability.
+
+2018-01-13  Jay Berkenbilt  <ejb@ql.org>
+
+	* Fix lexical error: the PDF specification allows floating point
+	numbers to end with ".". Fixes #165.
+
+	* Fix link order in the build to avoid conflicts when building
+	from source while an older version of qpdf is installed. Fixes #158.
+
+	* Add support for TIFF predictor for LZW and Flate streams. Now
+	all predictor functions are supported. Fixes #171.
+
+2017-12-25  Jay Berkenbilt  <ejb@ql.org>
+
+	* Clarify documentation around options that control parsing but
+	not output creation. Two options: --suppress-recovery and
+	--ignore-xref-streams, were documented in the "Advanced
+	Transformation Options" section of the manual and --help output
+	even though they are not related to output. These are now
+	described in a separate section called "Advanced Parsing Options."
+
+	* Implement remaining PNG filters for decode. Prior versions could
+	decode only the "up" filter. Now all PNG filters (sub, up,
+	average, Paeth, optimal) are supported for decoding. Thanks to
+	Tobias Hoffmann for providing a test PDF file that has images with
+	all PNG filters along with different numbers of bits per sample
+	and samples per pixel, and thanks to Casey Rojas for providing
+	implementations of the remaining PNG filters.
+
+	The implementation of the remaining PNG filters changed the
+	interface to the private Pl_PNGFilter class, but this class's
+	header file is not in the installation, and there is no public
+	interface to the class. Within the library, the class is never
+	allocated on the stack; it is only ever dynamically allocated. As
+	such, this does not actually break binary compatibility of the
+	library.
+
 2017-09-15  Jay Berkenbilt  <ejb@ql.org>
 
 	* 7.0.0: release
@@ -329,7 +846,7 @@
 
 2013-12-14  Jay Berkenbilt  <ejb@ql.org>
 
-	* Allow anyspace rather than just newline to follow xref header.
+	* Allow any space rather than just newline to follow xref header.
 	This allows qpdf to read a wider range of damaged files.
 
 2013-11-30  Jay Berkenbilt  <ejb@ql.org>
@@ -488,7 +1005,7 @@
 	* Add QPDF::getCompressibleObjGens() and deprecate
 	QPDF::getCompressibleObjects(), which had a flaw in its logic.
 
-	* Add new QPDFObjectHandle::getObjGen() method and indiciate in
+	* Add new QPDFObjectHandle::getObjGen() method and indicate in
 	comments that its use is favored over getObjectID() and
 	getGeneration() for most cases.
 
@@ -535,7 +1052,7 @@
 	* Remove all calls to sprintf
 
 	* New method QUtil::int_to_string_base to convert to octal or
-	hexademical (or decimal) strings without using sprintf
+	hexadecimal (or decimal) strings without using sprintf
 
 2013-02-26  Jay Berkenbilt  <ejb@ql.org>
 
@@ -664,7 +1181,7 @@
 	QPDF::compute_data_key to take the R and V values from the
 	encryption dictionary.  There is no reason for any application
 	code to call this method since handling of encryption is done
-	automatically by the qpdf libary.  It is used internally by
+	automatically by the qpdf library.  It is used internally by
 	QPDFWriter.
 
 	* Support reading and decryption of files whose main text is not
@@ -979,7 +1496,7 @@
 	* Add new array mutation routines to QPDFObjectHandle.
 	Implemented by Tobias Hoffmann.
 
-	* Rework APIs that use size_t, off_t, and primative integer types
+	* Rework APIs that use size_t, off_t, and primitive integer types
 	so that size_t is used for sizes of memory and off_t is used for
 	file offsets.  Also set _FILE_OFFSET_BITS so that large files can
 	be supported on 32-bit UNIX/Linux platforms.  The code assumes in
@@ -1082,7 +1599,7 @@
 	uses the invalid object number 0 as a regular object.
 
 	* libqpdf/QPDF_linearization.cc (isLinearized): use -1 rather than
-	0 as a sentintel for not having found the first object in the
+	0 as a sentinel for not having found the first object in the
 	file.  Since -1 can never match the regular expression, this
 	prevents an infinite loop when checking a file that starts with
 	(erroneous) 0 0 obj.  (Fixes qpdf-Bugs-3159950.)
@@ -1305,7 +1822,7 @@
 	with the required padding as specified by the PDF specification.
 	This is seldom useful to users.  This function has been replaced
 	by QPDF::getPaddedUserPassword.  Call the new
-	QPDF::getTrimmedUserPassword to retreive the user password in a
+	QPDF::getTrimmedUserPassword to retrieve the user password in a
 	human-readable format.
 
 	* qpdf/qpdf.cc (main): qpdf --check now prints the PDF version
