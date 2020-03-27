@@ -6,7 +6,7 @@
 #
 Name     : qpdf
 Version  : 8.4.0
-Release  : 5
+Release  : 6
 URL      : https://github.com/qpdf/qpdf/releases/download/release-qpdf-8.4.0/qpdf-8.4.0.tar.gz
 Source0  : https://github.com/qpdf/qpdf/releases/download/release-qpdf-8.4.0/qpdf-8.4.0.tar.gz
 Source99 : https://github.com/qpdf/qpdf/releases/download/release-qpdf-8.4.0/qpdf-8.4.0.tar.gz.asc
