@@ -6,10 +6,10 @@
 #
 Name     : qpdf
 Version  : 8.4.0
-Release  : 6
+Release  : 7
 URL      : https://github.com/qpdf/qpdf/releases/download/release-qpdf-8.4.0/qpdf-8.4.0.tar.gz
 Source0  : https://github.com/qpdf/qpdf/releases/download/release-qpdf-8.4.0/qpdf-8.4.0.tar.gz
-Source99 : https://github.com/qpdf/qpdf/releases/download/release-qpdf-8.4.0/qpdf-8.4.0.tar.gz.asc
+Source1  : https://github.com/qpdf/qpdf/releases/download/release-qpdf-8.4.0/qpdf-8.4.0.tar.gz.asc
 Summary  : PDF transformation library
 Group    : Development/Tools
 License  : Apache-2.0
@@ -31,7 +31,6 @@ directory.
 Summary: bin components for the qpdf package.
 Group: Binaries
 Requires: qpdf-license = %{version}-%{release}
-Requires: qpdf-man = %{version}-%{release}
 
 %description bin
 bin components for the qpdf package.
@@ -43,6 +42,7 @@ Group: Development
 Requires: qpdf-lib = %{version}-%{release}
 Requires: qpdf-bin = %{version}-%{release}
 Provides: qpdf-devel = %{version}-%{release}
+Requires: qpdf = %{version}-%{release}
 
 %description dev
 dev components for the qpdf package.
@@ -84,22 +84,27 @@ man components for the qpdf package.
 
 %prep
 %setup -q -n qpdf-8.4.0
+cd %{_builddir}/qpdf-8.4.0
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
-export LANG=C
-export SOURCE_DATE_EPOCH=1550705843
-export LDFLAGS="${LDFLAGS} -fno-lto"
+export LANG=C.UTF-8
+export SOURCE_DATE_EPOCH=1604604845
+export GCC_IGNORE_WERROR=1
+export CFLAGS="$CFLAGS -fno-lto "
+export FCFLAGS="$FFLAGS -fno-lto "
+export FFLAGS="$FFLAGS -fno-lto "
+export CXXFLAGS="$CXXFLAGS -fno-lto "
 %configure --disable-static
 make  %{?_smp_mflags}
 
 %install
-export SOURCE_DATE_EPOCH=1550705843
+export SOURCE_DATE_EPOCH=1604604845
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qpdf
-cp LICENSE.txt %{buildroot}/usr/share/package-licenses/qpdf/LICENSE.txt
+cp %{_builddir}/qpdf-8.4.0/LICENSE.txt %{buildroot}/usr/share/package-licenses/qpdf/2b8b815229aa8a61e483fb4ba0588b8b6c491890
 %make_install
 
 %files
@@ -172,7 +177,7 @@ cp LICENSE.txt %{buildroot}/usr/share/package-licenses/qpdf/LICENSE.txt
 
 %files license
 %defattr(0644,root,root,0755)
-/usr/share/package-licenses/qpdf/LICENSE.txt
+/usr/share/package-licenses/qpdf/2b8b815229aa8a61e483fb4ba0588b8b6c491890
 
 %files man
 %defattr(0644,root,root,0755)
