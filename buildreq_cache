@@ -1,5 +1,0 @@
-8.4.0
-libjpeg-turbo-dev
-libxml2-dev
-libxslt-bin
-pkgconfig(zlib)
