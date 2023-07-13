@@ -6,11 +6,11 @@
 # Source0 file verified with key 0x8A75D10998012C7E (ejb@ql.org)
 #
 Name     : qpdf
-Version  : 11.4.0
-Release  : 8
-URL      : https://github.com/qpdf/qpdf/releases/download/v11.4.0/qpdf-11.4.0.tar.gz
-Source0  : https://github.com/qpdf/qpdf/releases/download/v11.4.0/qpdf-11.4.0.tar.gz
-Source1  : https://github.com/qpdf/qpdf/releases/download/v11.4.0/qpdf-11.4.0.tar.gz.asc
+Version  : 11.5.0
+Release  : 9
+URL      : https://github.com/qpdf/qpdf/releases/download/v11.5.0/qpdf-11.5.0.tar.gz
+Source0  : https://github.com/qpdf/qpdf/releases/download/v11.5.0/qpdf-11.5.0.tar.gz
+Source1  : https://github.com/qpdf/qpdf/releases/download/v11.5.0/qpdf-11.5.0.tar.gz.asc
 Summary  : PDF transformation library
 Group    : Development/Tools
 License  : Apache-2.0
@@ -89,15 +89,15 @@ man components for the qpdf package.
 
 
 %prep
-%setup -q -n qpdf-11.4.0
-cd %{_builddir}/qpdf-11.4.0
+%setup -q -n qpdf-11.5.0
+cd %{_builddir}/qpdf-11.5.0
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1686076621
+export SOURCE_DATE_EPOCH=1689289052
 mkdir -p clr-build
 pushd clr-build
 export GCC_IGNORE_WERROR=1
@@ -117,7 +117,7 @@ export no_proxy=localhost,127.0.0.1,0.0.0.0
 cd clr-build; make test
 
 %install
-export SOURCE_DATE_EPOCH=1686076621
+export SOURCE_DATE_EPOCH=1689289052
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/qpdf
 cp %{_builddir}/qpdf-%{version}/LICENSE.txt %{buildroot}/usr/share/package-licenses/qpdf/2b8b815229aa8a61e483fb4ba0588b8b6c491890 || :
@@ -218,7 +218,7 @@ popd
 %files lib
 %defattr(-,root,root,-)
 /usr/lib64/libqpdf.so.29
-/usr/lib64/libqpdf.so.29.4.0
+/usr/lib64/libqpdf.so.29.5.0
 
 %files license
 %defattr(0644,root,root,0755)
