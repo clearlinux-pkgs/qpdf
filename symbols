@@ -680,6 +680,7 @@ libqpdf.so.29:_ZN4QPDF14updateFromJSONERKNSt7__cxx1112basic_stringIcSt11char_tra
 libqpdf.so.29:_ZN4QPDF14updateFromJSONESt10shared_ptrI11InputSourceE
 libqpdf.so.29:_ZN4QPDF15allowExtractAllEv
 libqpdf.so.29:_ZN4QPDF15allowModifyFormEv
+libqpdf.so.29:_ZN4QPDF15newIndirectNullEv
 libqpdf.so.29:_ZN4QPDF15replaceReservedE16QPDFObjectHandleS0_
 libqpdf.so.29:_ZN4QPDF16allowModifyOtherEv
 libqpdf.so.29:_ZN4QPDF16allowPrintLowResEv
